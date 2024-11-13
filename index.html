@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Moedas</title>
+</head>
+<body>
+    <h1>Conversor de Dólar para Real e Real para Dólar</h1>
+    <div>
+        <label for="valor">Digite o valor: </label>
+        <input type="number" id="valor" step="0.01" placeholder="Ex: 100">
+        <select id="tipo-conversao">
+            <option value="USD-BRL">Dólar (USD) para Real (BRL)</option>
+            <option value="BRL-USD">Real (BRL) para Dólar (USD)</option>
+        </select>
+        <button onclick="converterMoeda()">Converter</button>
+    </div>
+    <p id="resultado">Resultado: </p>
+
+    <script>
+        // Função para obter a cotação da moeda através da API
+        async function obterCotacao(tipo) {
+            // Corrigindo a URL da API para interpolação correta
+            const url = `https://open.er-api.com/v6/latest/${tipo}`;
+            try {
+                const resposta = await fetch(url);
+                const dados = await resposta.json();
+                if (dados.result === 'success') {
+                    return dados.rates; // Retorna as taxas de câmbio
+                } else {
+                    throw new Error('Erro ao obter a cotação');
+                }
+            } catch (erro) {
+                console.error('Erro na requisição:', erro);
+                alert('Erro ao obter a cotação. Verifique sua conexão ou tente novamente mais tarde.');
+            }
+        }
+
+        // Função principal para converter a moeda
+        async function converterMoeda() {
+            const valor = parseFloat(document.getElementById('valor').value);
+            const tipoConversao = document.getElementById('tipo-conversao').value;
+
+            if (isNaN(valor) || valor <= 0) {
+                alert('Digite um valor válido.');
+                return;
+            }
+
+            let resultado;
+
+            if (tipoConversao === 'USD-BRL') {
+                // Obter a cotação de USD para BRL
+                const taxas = await obterCotacao('USD');
+                const cotacaoUSD_BRL = taxas.BRL;  // A cotação do Dólar para Real
+                resultado = valor * cotacaoUSD_BRL;
+                document.getElementById('resultado').textContent = `Resultado: $${valor.toFixed(2)} USD é equivalente a R$${resultado.toFixed(2)} BRL`;
+            } else if (tipoConversao === 'BRL-USD') {
+                // Obter a cotação de BRL para USD
+                const taxas = await obterCotacao('BRL');
+                const cotacaoBRL_USD = taxas.USD;  // A cotação do Real para Dólar
+                resultado = valor * cotacaoBRL_USD;
+                document.getElementById('resultado').textContent = `Resultado: R$${valor.toFixed(2)} BRL é equivalente a $${resultado.toFixed(2)} USD`;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
